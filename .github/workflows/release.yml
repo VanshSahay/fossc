@@ -60,13 +60,22 @@ jobs:
 
       - name: Publish apt repo
         env:
+          GH_TOKEN: ${{ github.token }}
           GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+          VERSION: ${{ github.ref_name }}
         run: |
           set -euo pipefail
+          # Every release's .debs, so published versions stay installable.
+          mkdir -p debs
+          for rel in $(gh release list -R "$GITHUB_REPOSITORY" --limit 50 --json tagName -q '.[].tagName'); do
+            gh release download "$rel" -R "$GITHUB_REPOSITORY" --pattern '*.deb' --dir debs
+          done
+
           aptly repo create -distribution=stable -component=main fossc-stable
-          aptly repo add fossc-stable dist/*.deb
+          aptly repo add fossc-stable debs/*.deb
+          aptly snapshot create "fossc-${VERSION#v}" from repo fossc-stable
           aptly publish snapshot -gpg-key="$GPG_KEY_ID" -force-overwrite \
-            -distribution=stable fossc-stable
+            -distribution=stable "fossc-${VERSION#v}"
           cp "packaging/apt/$KEYRING" public/
 
       - name: Deploy apt repo to gh-pages
