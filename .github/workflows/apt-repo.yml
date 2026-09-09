@@ -36,8 +36,9 @@ jobs:
 
       - name: Install aptly
         run: |
-          curl -fsSL https://repo.aptly.info/pt7OJx/archive.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/aptly.gpg
-          echo "deb [signed-by=/etc/apt/trusted.gpg.d/aptly.gpg] https://repo.aptly.info/pt7OJx any main" | sudo tee /etc/apt/sources.list.d/aptly.list
+          sudo mkdir -p /etc/apt/keyrings
+          sudo wget -qO /etc/apt/keyrings/aptly.asc https://www.aptly.info/pubkey.txt
+          echo "deb [signed-by=/etc/apt/keyrings/aptly.asc] https://repo.aptly.info/release noble main" | sudo tee /etc/apt/sources.list.d/aptly.list
           sudo apt-get update -qq
           sudo apt-get install -y -qq aptly
 

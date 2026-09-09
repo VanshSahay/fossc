@@ -61,8 +61,8 @@ EOF
 echo "$formula"
 
 # Without a token (snapshot/local runs) just print.
-if [[ -z "${TAP_GITHUB_TOKEN:-}" ]]; then
-  echo "TAP_GITHUB_TOKEN not set — formula not pushed." >&2
+if [[ -z "${GH_TOKEN:-}" ]]; then
+  echo "GH_TOKEN not set — formula not pushed." >&2
   exit 0
 fi
 
