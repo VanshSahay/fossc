@@ -1,0 +1,16 @@
+Package: fossc
+Priority: optional
+Section: utils
+Installed-Size: 3143
+Maintainer: Vansh Sahay <VanshSahay@users.noreply.github.com>
+Architecture: arm64
+Version: 1.0.0
+Filename: pool/main/f/fossc/fossc_1.0.0_arm64.deb
+Size: 1218802
+MD5sum: 73e79c1260bbd3614f4195fbc576cbcd
+SHA1: 4b8073c3aff3dc8727414ea0e9920ca0445cd850
+SHA256: 16cc8d0d3411a22e9a97a4f4512068fdbb78dca0557c82050008c56ebf6c46d7
+SHA512: c2f9b200c150fd3498a3b73d81016dcd743929134d1db04d1a4171b548fe5d25cc541f4ce2edf2ab81e0e23a628c9ee2aa54478d2e106258d3c5b834d3513dde
+Description: FOSS Club KIET operational handbook and gateway — the terminal gazette.
+Homepage: https://github.com/VanshSahay/fossc
+
