@@ -7,8 +7,8 @@ How a release gets from a git tag to every package manager.
 | Thing | Where |
 | --- | --- |
 | Source repo | `github.com/VanshSahay/fossc` |
-| Homebrew tap | `github.com/VanshSahay/homebrew-tap` (goreleaser pushes `Formula/fossc.rb`) |
-| apt repo | `https://vanshsahay.github.io/fossc/` (gh-pages branch, built by aptly) |
+| Homebrew tap | `github.com/VanshSahay/homebrew-tap` (`scripts/build-formula.sh` pushes `Formula/fossc.rb`) |
+| apt repo | `https://vanshsahay.github.io/fossc/` (gh-pages branch, built by aptly in the release workflow) |
 
 GitHub secrets on `VanshSahay/fossc`:
 
@@ -29,24 +29,27 @@ git tag v1.2.3
 git push origin main v1.2.3
 ```
 
-That's it. The `release` workflow then:
+That's it. The single `release` workflow then:
 
 1. Builds binaries (linux/darwin/windows × amd64/arm64) with goreleaser,
    `-s -w -X main.version=<tag>`.
 2. Publishes the GitHub Release with tarballs/zip + checksums.
-3. Pushes `Formula/fossc.rb` to `VanshSahay/homebrew-tap`.
+3. Generates `Formula/fossc.rb` from `checksums.txt` and pushes it to
+   `VanshSahay/homebrew-tap` (goreleaser's `brews` is deprecated in favor of
+   casks, which don't suit a pure CLI — hence the small generator script).
 4. Builds `deb`, `rpm`, and `archlinux` packages via nfpm (man page, README and
    LICENSE included).
+5. Adds the `.deb`s to the aptly repo `fossc-stable`, signs and publishes the
+   `stable` distribution, and deploys `dists/` + `pool/` + the armored public
+   key to `gh-pages`.
 
-The `apt-repo` workflow then fires on the published release: downloads the
-`.deb`, adds it to the aptly repo `fossc-stable`, signs and publishes the
-`stable` distribution, and force-deploys to `gh-pages`.
+Note: the apt publish lives in the same workflow because releases authored
+with `GITHUB_TOKEN` don't trigger other workflows.
 
 ## Verify after a release
 
 ```sh
-gh run watch -R VanshSahay/fossc                                   # release
-gh run watch -R VanshSahay/fossc $(gh run list -R VanshSahay/fossc -w apt-repo -L1 --json databaseId -q '.[0].databaseId')
+gh run watch -R VanshSahay/fossc            # one run does release + tap + apt
 curl -fsSL https://vanshsahay.github.io/fossc/dists/stable/Release | head
 brew info VanshSahay/tap/fossc
 ```
