@@ -27,5 +27,12 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # PAT that can push the formula to VanshSahay/homebrew-tap.
-          TAP_GITHUB_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+
+      # goreleaser deprecated `brews` (formulas) in favor of casks; fossc is a
+      # pure CLI, so we generate the real formula from the release checksums.
+      - name: Push Homebrew formula
+        env:
+          GH_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/build-formula.sh
+          scripts/build-formula.sh "${GITHUB_REF_NAME#v}" dist/checksums.txt

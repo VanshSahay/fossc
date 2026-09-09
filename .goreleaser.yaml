@@ -47,24 +47,6 @@ changelog:
       - "^chore:"
       - "^test:"
 
-# Homebrew: on release, goreleaser computes the sha256 and pushes the formula
-# to VanshSahay/homebrew-tap. Needs the TAP_GITHUB_TOKEN secret.
-brews:
-  - name: fossc
-    repository:
-      owner: VanshSahay
-      name: homebrew-tap
-      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
-    directory: Formula
-    homepage: "https://github.com/VanshSahay/fossc"
-    description: "FOSS Club KIET operational handbook and gateway — terminal gazette"
-    license: "MIT"
-    install: |
-      bin.install "fossc"
-      man1.install "fossc.1"
-    test: |
-      system "#{bin}/fossc", "--version"
-
 # deb / rpm / archlinux packages. The .deb feeds the GitHub Pages apt repo
 # (.github/workflows/apt-repo.yml).
 nfpms:
@@ -88,8 +70,9 @@ nfpms:
       - src: LICENSE
         dst: /usr/share/doc/fossc/LICENSE
     deb:
-      section: utils
-      priority: optional
+      fields:
+        section: utils
+        priority: optional
     rpm:
       group: Utilities
 
