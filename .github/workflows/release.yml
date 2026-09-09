@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write
 
+env:
+  KEYRING: fossc-archive-keyring.asc
+
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
@@ -36,3 +39,41 @@ jobs:
         run: |
           chmod +x scripts/build-formula.sh
           scripts/build-formula.sh "${GITHUB_REF_NAME#v}" dist/checksums.txt
+
+      # ---- self-hosted apt repo on GitHub Pages ----
+      # Done in this same workflow: releases authored with GITHUB_TOKEN do not
+      # trigger other workflows.
+      - name: Install aptly
+        run: |
+          sudo mkdir -p /etc/apt/keyrings
+          sudo wget -qO /etc/apt/keyrings/aptly.asc https://www.aptly.info/pubkey.txt
+          echo "deb [signed-by=/etc/apt/keyrings/aptly.asc] https://repo.aptly.info/release noble main" | sudo tee /etc/apt/sources.list.d/aptly.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq aptly
+
+      - name: Import apt signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format long
+
+      - name: Publish apt repo
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          set -euo pipefail
+          aptly repo create -distribution=stable -component=main fossc-stable
+          aptly repo add fossc-stable dist/*.deb
+          aptly publish snapshot -gpg-key="$GPG_KEY_ID" -force-overwrite \
+            -distribution=stable fossc-stable
+          cp "packaging/apt/$KEYRING" public/
+
+      - name: Deploy apt repo to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: gh-pages
+          publish_dir: public
+          keep_files: true
+          force_orphan: false
