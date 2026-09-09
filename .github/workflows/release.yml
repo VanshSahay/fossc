@@ -76,6 +76,9 @@ jobs:
           aptly snapshot create "fossc-${VERSION#v}" from repo fossc-stable
           aptly publish snapshot -gpg-key="$GPG_KEY_ID" -force-overwrite \
             -distribution=stable "fossc-${VERSION#v}"
+          # aptly publishes to ~/.aptly/public; stage it next to the keyring.
+          mkdir -p public
+          cp -r "${HOME}/.aptly/public/." public/
           cp "packaging/apt/$KEYRING" public/
 
       - name: Deploy apt repo to gh-pages
