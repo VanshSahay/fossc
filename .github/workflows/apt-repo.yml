@@ -1,0 +1,78 @@
+# Builds the self-hosted apt repository on GitHub Pages.
+#
+# On every published release this downloads the .deb goreleaser produced,
+# adds it to an aptly repo, signs a published snapshot with the repo GPG key,
+# and deploys dists/ + pool/ + the armored public key to the gh-pages branch:
+#
+#   https://vanshsahay.github.io/fossc/
+#
+# Users then add:
+#   curl -fsSL https://vanshsahay.github.io/fossc/fossc-archive-keyring.asc \
+#     | sudo tee /usr/share/keyrings/fossc-archive-keyring.asc >/dev/null
+#   echo "deb [signed-by=/usr/share/keyrings/fossc-archive-keyring.asc] https://vanshsahay.github.io/fossc stable main" \
+#     | sudo tee /etc/apt/sources.list.d/fossc.list
+#   sudo apt update && sudo apt install fossc
+#
+# Required secrets: GPG_PRIVATE_KEY (armored, no passphrase), GPG_KEY_ID.
+
+name: apt-repo
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  KEYRING: fossc-archive-keyring.asc
+  REPO_URL: https://vanshsahay.github.io/fossc
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install aptly
+        run: |
+          curl -fsSL https://repo.aptly.info/pt7OJx/archive.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/aptly.gpg
+          echo "deb [signed-by=/etc/apt/trusted.gpg.d/aptly.gpg] https://repo.aptly.info/pt7OJx any main" | sudo tee /etc/apt/sources.list.d/aptly.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq aptly
+
+      - name: Import signing key
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+        run: |
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format long
+
+      - name: Download release .deb
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p debs
+          gh release download "${{ github.event.release.tag_name }}" \
+            --repo "${{ github.repository }}" \
+            --pattern "*.deb" --dir debs
+
+      - name: Publish apt repo
+        env:
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        run: |
+          set -euo pipefail
+          aptly repo create -distribution=stable -component=main fossc-stable
+          aptly repo add fossc-stable debs/*.deb
+          aptly publish snapshot -gpg-key="$GPG_KEY_ID" -force-overwrite \
+            -distribution=stable fossc-stable
+          cp "packaging/apt/$KEYRING" public/
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ github.token }}
+          publish_branch: gh-pages
+          publish_dir: public
+          keep_files: true
+          force_orphan: false

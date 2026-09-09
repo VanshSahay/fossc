@@ -1,0 +1,103 @@
+version: 2
+
+project_name: fossc
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: fossc
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - formats: [tar.gz]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        formats: [zip]
+    files:
+      - README.md
+      - LICENSE
+      - src: packaging/fossc.1
+        strip_parent: true
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^chore:"
+      - "^test:"
+
+# Homebrew: on release, goreleaser computes the sha256 and pushes the formula
+# to VanshSahay/homebrew-tap. Needs the TAP_GITHUB_TOKEN secret.
+brews:
+  - name: fossc
+    repository:
+      owner: VanshSahay
+      name: homebrew-tap
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: "https://github.com/VanshSahay/fossc"
+    description: "FOSS Club KIET operational handbook and gateway — terminal gazette"
+    license: "MIT"
+    install: |
+      bin.install "fossc"
+      man1.install "fossc.1"
+    test: |
+      system "#{bin}/fossc", "--version"
+
+# deb / rpm / archlinux packages. The .deb feeds the GitHub Pages apt repo
+# (.github/workflows/apt-repo.yml).
+nfpms:
+  - id: packages
+    package_name: fossc
+    file_name_template: "{{ .ConventionalFileName }}"
+    vendor: FOSS Club KIET
+    homepage: https://github.com/VanshSahay/fossc
+    maintainer: Vansh Sahay <VanshSahay@users.noreply.github.com>
+    description: FOSS Club KIET operational handbook and gateway — the terminal gazette.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+      - archlinux
+    contents:
+      - src: packaging/fossc.1
+        dst: /usr/share/man/man1/fossc.1
+      - src: README.md
+        dst: /usr/share/doc/fossc/README.md
+      - src: LICENSE
+        dst: /usr/share/doc/fossc/LICENSE
+    deb:
+      section: utils
+      priority: optional
+    rpm:
+      group: Utilities
+
+release:
+  footer: >-
+    ## Install
+
+    macOS: `brew install VanshSahay/tap/fossc` ·
+    Debian/Ubuntu: https://vanshsahay.github.io/fossc/ (apt repo) ·
+    Go: `go install github.com/VanshSahay/fossc@{{ .Tag }}` ·
+    Arch: PKGBUILD in `packaging/AUR/` (AUR submissions paused upstream)

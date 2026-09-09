@@ -1,0 +1,117 @@
+.TH FOSC 1 "September 2026" "fossc 1.0.0" "Linux Reference Manual"
+.SH NAME
+.B fossc
+\- FOSS Club KIET operational handbook and gateway
+.SH SYNOPSIS
+.B fossc
+.RB [ \-\-discord ]
+.RB [ \-\-bootcamp ]
+.RB [ \-\-meeting\ tuesday-5pm ]
+.RB [ \-\-research\-paper ]
+.RB [ \-\-quote ]
+.RB [ \-\-members ]
+.RI [ command ]
+.SH DESCRIPTION
+.B FOSS Club KIET
+is the student-led software freedom collective at KIET Deemed To Be
+University. We run open labs in
+.B Room H808 or H108
+(confirm on Discord once temporarily) every day after class hours conclude.
+Run with no arguments,
+.B fossc
+opens a full-screen terminal gazette mirroring the official website,
+.UR https://www.fossclubkiet.org
+.UE :
+masthead, sidebar widgets and editorial views.
+.SH COMMANDS
+.TP
+.B frontpage
+Front page of the weekly edition (default view).
+.TP
+.B weekly
+Weekly edition.
+.TP
+.B man
+The man fossc(1) view.
+.TP
+.B bootcamp
+Linux Basics & Open-Source History Bootcamp dossier.
+.TP
+.B members
+Member roster, Academic Year 2026\-27.
+.TP
+.B discord
+Open the Discord invite in your browser.
+.SH MEETINGS & TIMINGS
+.TS
+tab(|);
+l l l.
+Cadence|Time & Schedule|Venue / Details
+_
+Daily Hours|Everyday after classes|Room H808 or H108 (confirm on Discord)
+Weekly Sync|Every Tuesday @ 5:00 PM|General meetings & lightning talks
+Paper Group|Monthly|Systems & architecture review
+.TE
+.SH FLAGS
+.TP
+.B \-\-discord
+Print and open the Discord invite (https://discord.gg/JK272Ef8Pm).
+.TP
+.B \-\-bootcamp
+Print the full bootcamp dossier.
+.TP
+.BI \-\-meeting\ " when"
+Print the meetings table; the schedule to show:
+.BR tuesday-5pm " (default weekly sync with countdown), " daily ", " paper .
+.TP
+.B \-\-research\-paper
+Print the monthly research paper reading circle notice.
+.TP
+.B \-\-quote
+Print today's quote of the day (same pick as the website).
+.TP
+.B \-\-members
+Print the member roster.
+.TP
+.B \-\-version
+Print version information and exit.
+.SH KEYS (GAZETTE)
+.TP
+.B 1\-6
+Jump to a view.
+.TP
+.B \[la]/\[ra], h/l, tab
+Switch views.
+.TP
+.B \[ua]/\[da], k/j, pgup/pgdn
+Scroll the articles (mouse wheel works too).
+.TP
+.B o
+Open the Discord invite in the browser.
+.TP
+.B O
+Open the website in the browser.
+.TP
+.B y
+Copy the bootcamp announcement text.
+.TP
+.B d
+Toggle light/dark theme.
+.TP
+.B q
+Quit.
+.SH COMMUNICATION
+.TP
+Discord:
+.UR https://discord.gg/JK272Ef8Pm
+.UE
+.TP
+Venue:
+Room H808 or H108 (confirm on Discord once temporarily), CSE\-AI / AI&ML
+Dept, KIET
+.SH SEE ALSO
+The official website:
+.UR https://www.fossclubkiet.org
+.UE
+.SH AUTHORS
+FOSS Club KIET members — see `fossc --members`.

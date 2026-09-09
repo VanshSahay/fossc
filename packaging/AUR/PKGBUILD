@@ -1,0 +1,39 @@
+# Maintainer: Vansh Sahay <VanshSahay@users.noreply.github.com>
+# Contributor: FOSS Club KIET
+#
+# AUR submissions are temporarily paused upstream, so this PKGBUILD ships in
+# the repo. Once submissions reopen, `updpkgsums` + `aurpublish fossc` (or the
+# web upload flow) submits it. Until then Arch users can install directly:
+#
+#   git clone https://github.com/VanshSahay/fossc && cd fossc/packaging/AUR
+#   updpkgsums && makepkg -si
+
+pkgname=fossc
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="FOSS Club KIET operational handbook and gateway — terminal gazette"
+arch=('x86_64' 'aarch64')
+url="https://github.com/VanshSahay/fossc"
+license=('MIT')
+makedepends=('go' 'git')
+source=("$pkgname-$pkgver.tar.gz::https://github.com/VanshSahay/fossc/archive/refs/tags/v$pkgver.tar.gz")
+sha256sums=('SKIP')  # replace with `updpkgsums` output before publishing
+
+build() {
+  cd "$pkgname-$pkgver"
+  export CGO_ENABLED=0
+  go build -trimpath -ldflags "-s -w -X main.version=$pkgver" -o fossc .
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+  ./fossc --version
+}
+
+package() {
+  cd "$pkgname-$pkgver"
+  install -Dm755 fossc "$pkgdir/usr/bin/fossc"
+  install -Dm644 packaging/fossc.1 "$pkgdir/usr/share/man/man1/fossc.1"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README.md "$pkgdir/usr/share/doc/$pkgname/README.md"
+}
